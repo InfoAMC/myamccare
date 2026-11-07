@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal de agentes · AMC Care Group</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#000E66">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="agentes.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <button class="brand" id="homeBtn" type="button" aria-label="Portal"><img src="../assets/amc-logo-web.png" alt="AMC Care Group LLC" width="1868" height="864"></button>
+    <div class="top-tools">
+      <div class="who" id="who" hidden><b id="whoName"></b><span id="whoEmail"></span></div>
+      <div class="lang" role="group" aria-label="Idioma / Language"><button type="button" data-lang="es">ES</button><button type="button" data-lang="en">EN</button></div>
+      <button class="ghost" id="logoutBtn" type="button" data-t="logout" hidden></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Entrada -->
+  <section class="login" id="vLogin" hidden>
+    <img class="login-casita" src="../assets/casita.svg" alt="" width="520" height="480">
+    <h1 data-t="loginTitle"></h1>
+    <p class="muted" id="loginHint"></p>
+    <form id="emailForm" novalidate>
+      <label for="email" data-t="emailLabel"></label>
+      <input id="email" type="email" autocomplete="email" inputmode="email" required>
+      <button class="primary" type="submit" data-t="sendCode"></button>
+    </form>
+    <form id="codeForm" novalidate hidden>
+      <label for="code" data-t="codeLabel"></label>
+      <input id="code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+      <button class="primary" type="submit" data-t="enter"></button>
+      <button class="link" id="backBtn" type="button" data-t="useOther"></button>
+    </form>
+    <p class="msg" id="loginMsg" role="status" hidden></p>
+  </section>
+
+  <!-- Portal -->
+  <section id="vPortal" hidden>
+    <div class="page-head">
+      <div>
+        <h1 id="hello"></h1>
+        <p class="muted" data-t="portalSub"></p>
+      </div>
+      <input class="search" id="search" type="search" autocomplete="off">
+    </div>
+    <div class="links" id="links"></div>
+    <p class="muted empty" id="linksEmpty" data-t="noLinks" hidden></p>
+  </section>
+
+  <!-- Daily Report -->
+  <section id="vReport" hidden>
+    <button class="link back" id="backHome" type="button" data-t="backPortal"></button>
+    <div class="page-head">
+      <div>
+        <h1 data-t="reportTitle"></h1>
+        <p class="muted" data-t="reportSub"></p>
+      </div>
+      <p class="today-pill"><b id="todayN">0</b> <span data-t="salesToday"></span></p>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="reg" data-t="tabReg"></button>
+      <button type="button" role="tab" data-tab="hist" data-t="tabHist"></button>
+      <button type="button" role="tab" data-tab="admin" id="tabAdmin" data-t="tabAdmin" hidden></button>
+    </div>
+
+    <div class="panel" id="p-reg">
+      <div class="reg-top">
+        <div>
+          <label data-t="howMany"></label>
+          <div class="stepper">
+            <button type="button" id="minus" aria-label="−">−</button>
+            <output id="count">1</output>
+            <button type="button" id="plus" aria-label="+">+</button>
+          </div>
+        </div>
+      </div>
+      <details class="help">
+        <summary data-t="enrollHelpTitle"></summary>
+        <ul id="enrollHelp"></ul>
+      </details>
+      <div id="saleBlocks"></div>
+      <button class="primary" id="submitSales" type="button" disabled></button>
+      <p class="hint" id="completeHint" data-t="completeHint"></p>
+      <p class="msg" id="regMsg" role="status" hidden></p>
+    </div>
+
+    <div class="panel" id="p-hist" hidden>
+      <label for="histCarrier" data-t="carrier"></label>
+      <select id="histCarrier" class="narrow"></select>
+      <div class="table-wrap" id="histTable"></div>
+      <p class="hint" id="histTotal"></p>
+    </div>
+
+    <div class="panel" id="p-admin" hidden>
+      <div class="metrics" id="metrics"></div>
+
+      <h2 data-t="chartTitle"></h2>
+      <p class="hint" data-t="chartHint"></p>
+      <div class="filters">
+        <select id="fCarrier" aria-label="Carrier"></select>
+        <select id="fPlan" aria-label="Plan"></select>
+        <input id="fFrom" type="date" aria-label="Desde / From">
+        <input id="fTo" type="date" aria-label="Hasta / To">
+        <select id="fGroup" aria-label="Agrupar / Group"></select>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="actions">
+        <button class="ghost" id="chartCsv" type="button" data-t="downloadCsv"></button>
+        <button class="ghost" id="chartXlsx" type="button" data-t="downloadXlsx"></button>
+        <button class="ghost" id="chartPng" type="button" data-t="downloadChart"></button>
+      </div>
+
+      <h2 data-t="fullHist"></h2>
+      <div class="filters">
+        <input id="hFrom" type="date" aria-label="Desde / From">
+        <input id="hTo" type="date" aria-label="Hasta / To">
+        <select id="hAgent" aria-label="Agente / Agent"></select>
+      </div>
+      <div class="table-wrap" id="fullTable"></div>
+      <div class="pager" id="pager"></div>
+      <div class="actions">
+        <button class="ghost" id="fullCsv" type="button" data-t="downloadCsv"></button>
+        <button class="ghost" id="fullXlsx" type="button" data-t="downloadXlsx"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="vLoading" class="loading"><span class="spin" aria-hidden="true"></span></section>
+</main>
+
+<footer class="foot">
+  <img src="../assets/casita.svg" alt="" width="520" height="480">
+  <span>Crecemos Contigo</span>
+</footer>
+
+<script src="agentes.js"></script>
+</body>
+</html>
