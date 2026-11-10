@@ -1,7 +1,7 @@
 // AMC Care Group — comportamiento del sitio público.
 // Datos que se completan en un solo lugar cuando estén listos:
 var CONFIG = {
-  phone: '+18623474364',     // número principal al público (Carlos); la línea gratuita 844 va aparte en Contacto
+  phone: '+18623474364',     // número principal al público
   phoneDisplay: '(862) 347-4364',
   formEndpoint: 'https://script.google.com/macros/s/AKfycbyNLaR1nbwCRVKaeNrcNqxiEmLfOxHi6forzTz-Xu8nPaV1pLORPOSpVG4_p4TiCT55/exec',
   facebook: 'https://www.facebook.com/AMCCareGroup/',
@@ -17,6 +17,7 @@ var T = {
     sent: '¡Gracias! Recibimos su solicitud. Un agente con licencia le llamará pronto, normalmente el mismo día hábil.',
     joinSent: '¡Gracias! Recibimos sus datos. Le escribiremos pronto.',
     missing: 'Revise los campos marcados en rojo.',
+    badPhone: 'Escriba un teléfono de 10 dígitos, por ejemplo (305) 555-0123.',
     noEndpoint: 'El formulario todavía no está conectado. Llámenos al (862) 347-4364.',
     fail: 'No pudimos enviar su solicitud. Intente de nuevo o llámenos.',
     sending: 'Enviando…',
@@ -28,6 +29,7 @@ var T = {
     sent: 'Thank you! We received your request. A licensed agent will call you soon, usually the same business day.',
     joinSent: 'Thank you! We received your information. We will contact you soon.',
     missing: 'Please check the fields marked in red.',
+    badPhone: 'Enter a 10-digit phone number, for example (305) 555-0123.',
     noEndpoint: 'The form is not connected yet. Please call us at (862) 347-4364.',
     fail: 'We could not send your request. Please try again or call us.',
     sending: 'Sending…',
@@ -55,6 +57,10 @@ function setLang(l) {
     if (el.dataset.esPh === undefined) el.dataset.esPh = el.getAttribute('placeholder') || '';
     el.setAttribute('placeholder', l === 'en' ? el.dataset.enPh : el.dataset.esPh);
   });
+  document.querySelectorAll('[data-en-alt]').forEach(function (el) {
+    if (el.dataset.esAlt === undefined) el.dataset.esAlt = el.getAttribute('alt') || '';
+    el.setAttribute('alt', l === 'en' ? el.dataset.enAlt : el.dataset.esAlt);
+  });
   document.querySelectorAll('.lang button').forEach(function (b) {
     var on = b.dataset.lang === l;
     b.classList.toggle('active', on);
@@ -70,13 +76,15 @@ function setLang(l) {
 }
 
 // Periodo de inscripción inicial: 3 meses antes del mes en que cumple 65, ese mes y 3 después.
-function updateIep() {
+// Si nació el día 1, todo se adelanta un mes. La fecha se calcula aquí y no se envía a ningún lado.
+function updateIep(force) {
   var input = document.getElementById('bday65');
   var out = document.getElementById('iepOut');
   if (!input || !out) return;
+  if (force !== true && !out.textContent) return;
   if (!input.value) { out.textContent = ''; return; }
   var p = input.value.split('-');
-  var y = +p[0], m = +p[1] - 1;
+  var y = +p[0] + 65, m = +p[1] - 1 - (+p[2] === 1 ? 1 : 0);
   var fmt = new Intl.DateTimeFormat(LANG === 'en' ? 'en-US' : 'es-US', { month: 'long', year: 'numeric' });
   out.textContent = T[LANG].iep(fmt.format(new Date(y, m - 3, 1)), fmt.format(new Date(y, m + 3, 1)));
 }
@@ -115,7 +123,12 @@ function validate(form) {
 
 function send(form, okText) {
   if (form.querySelector('.hp').value) return; // bot
-  if (!validate(form)) { showMsg(form, T[LANG].missing, true); return; }
+  form.querySelectorAll('input[type=tel]').forEach(function (el) { el.dispatchEvent(new Event('change')); });
+  if (!validate(form)) {
+    var tel = form.querySelector('input[type=tel]');
+    showMsg(form, tel && tel.validationMessage === T[LANG].badPhone ? T[LANG].badPhone : T[LANG].missing, true);
+    return;
+  }
   if (!CONFIG.formEndpoint) { showMsg(form, T[LANG].noEndpoint, true); return; }
   var data = new URLSearchParams(new FormData(form));
   data.set('form', form.id);
@@ -143,11 +156,38 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   // WhatsApp: oculto mientras CONFIG.whatsapp esté vacío.
   if (CONFIG.whatsapp) {
-    document.querySelectorAll('[data-whatsapp]').forEach(function (li) {
-      li.hidden = false;
-      li.querySelector('a').href = 'https://wa.me/' + CONFIG.whatsapp;
+    document.querySelectorAll('[data-whatsapp]').forEach(function (el) {
+      el.hidden = false;
+      (el.tagName === 'A' ? el : el.querySelector('a')).href = 'https://wa.me/' + CONFIG.whatsapp;
     });
   }
+  // Botón flotante de llamada: llama directo; con WhatsApp activo abre un menú con las dos opciones.
+  var fabBtn = document.getElementById('fabBtn');
+  var fabMenu = document.getElementById('fabMenu');
+  if (fabBtn) {
+    var fabToggle = function (open) {
+      fabMenu.hidden = !open;
+      fabBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    fabBtn.addEventListener('click', function () {
+      if (!CONFIG.whatsapp) { location.href = 'tel:' + CONFIG.phone; return; }
+      fabToggle(fabMenu.hidden);
+    });
+    document.addEventListener('click', function (e) { if (!e.target.closest('.fab')) fabToggle(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fabToggle(false); });
+  }
+  // Teléfonos de los formularios: 10 dígitos de EE. UU.; se muestran como (000) 000-0000.
+  document.querySelectorAll('form input[type=tel]').forEach(function (el) {
+    var check = function () {
+      var d = el.value.replace(/\D/g, '');
+      if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+      var ok = !el.value.trim() || /^[2-9]\d{2}[2-9]\d{6}$/.test(d);
+      el.setCustomValidity(ok ? '' : T[LANG].badPhone);
+      if (ok && d.length === 10) el.value = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+    };
+    el.addEventListener('change', check);
+    el.addEventListener('blur', check);
+  });
   // Aviso de la inscripción anual: del 15 de octubre al 7 de diciembre, hora del Este.
   var aep = document.getElementById('aepBar');
   if (aep) {
@@ -241,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Fechas clave.
   markOpenPeriods();
-  document.getElementById('bday65').addEventListener('input', updateIep);
+  document.getElementById('iepBtn').addEventListener('click', function () { updateIep(true); });
 
   // "Únase a nuestro equipo" en ventana.
   var dlg = document.getElementById('joinDlg');
