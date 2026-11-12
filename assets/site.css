@@ -391,6 +391,19 @@ html.big-text main,html.big-text .site-foot{zoom:1.18}
 .fab-btn{display:flex;align-items:center;gap:10px;border:0;cursor:pointer;font:inherit;font-weight:800;font-size:16px;color:#fff;background:var(--navy);padding:14px 20px 14px 16px;border-radius:999px;box-shadow:0 0 0 3px #EECD7E,0 10px 28px rgba(0,14,102,.28)}
 .fab-btn svg,.fab-menu svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
 .fab-btn:hover,.fab-btn[aria-expanded=true]{background:var(--navy-2)}
+a.fab-btn{text-decoration:none}
+.fab-txt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
+.fab-txt small{font-size:12px;font-weight:600;color:#EECD7E}
+/* Barra del celular con dos números: botones más compactos */
+@media (max-width:760px){
+  .mobile-bar{gap:8px;padding-left:10px;padding-right:10px}
+  .mobile-bar a{gap:6px;padding:11px 6px;font-size:15px}
+  .mobile-bar a svg{flex:0 0 auto}
+}
+@media (max-width:400px){
+  .mobile-bar a:not(.mb-gold) svg{display:none}
+  .mb-call small{font-size:12px}
+}
 .fab-menu{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 34px rgba(0,14,102,.18);padding:8px;min-width:230px}
 .fab-menu[hidden],.fab-menu a[hidden]{display:none}
 .fab-menu a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--navy)}
@@ -467,3 +480,21 @@ html.big-text main,html.big-text .site-foot{zoom:1.18}
   .iep-row input{width:100%}
   .story-photos{grid-template-columns:1fr}
 }
+
+/* Correcciones del cliente (2026-11-12) */
+/* 8: cada periodo en su propio cuadro */
+.timeline li{display:flex}
+.tl-card{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;box-shadow:var(--card-shadow)}
+/* 4: casitas completas a ambos lados */
+.hc-left{left:24px}
+.hc-right{right:24px}
+.hero-casita{width:240px}
+@media (max-width:760px){
+  .timeline li{display:block}
+  .hero-casita{width:110px;top:120px}
+  .hc-left{left:8px}
+  .hc-right{right:8px}
+}
+/* Comentarios de la clienta: no dejar palabras sueltas al final ni cortar títulos a medias */
+p,li,dd,small,figcaption,summary{text-wrap:pretty}
+h1,h2,h3,.lema{text-wrap:balance}
